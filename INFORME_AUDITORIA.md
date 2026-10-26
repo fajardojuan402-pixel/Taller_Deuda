@@ -186,10 +186,32 @@ fastpay-service/src/
 
 ### 6.2 Evidencias de Bloqueo y Aprobación
 
-1. **Pull Request BLOQUEADO (evidencia a generar):** crear una rama que introduzca un fallo deliberado (p. ej. bajar la cobertura eliminando pruebas, o añadir una función con complejidad > 8) y abrir un PR. El check de GitHub Actions aparecerá en **rojo** y el merge quedará bloqueado. *(Insertar aquí el enlace/captura del PR rojo.)*
-2. **Pull Request APROBADO (evidencia a generar):** el PR con el refactor completo muestra los 4 gates en **verde**. *(Insertar aquí el enlace/captura del PR verde.)*
+Se prepararon **dos ramas** en el repositorio para demostrar el comportamiento del Quality Gate. Cada una debe convertirse en un Pull Request hacia `main` desde la pestaña *Pull requests* de GitHub.
 
-> Evidencia local reproducible (misma lógica que corre en CI):
+**1. Pull Request BLOQUEADO — rama `demo/quality-gate-fail`**
+
+* **Fallo deliberado:** se añadió `fastpay-service/src/domain/BadDiscountRules.js`, una función con **complejidad ciclomática 12** (máximo permitido 8) y **anidamiento de 6 niveles** (máximo 3).
+* **Resultado esperado:** al abrir el PR, **GATE 1 (ESLint)** falla y GitHub Actions marca el check en **rojo**; el merge a `main` queda bloqueado.
+* **Verificación local reproducible:**
+  ```text
+  Function 'computeMessyDiscount' has a complexity of 12. Maximum allowed is 8   complexity
+  Blocks are nested too deeply (6). Maximum allowed is 3                          max-depth
+  ✖ 4 problems (4 errors, 0 warnings)
+  ```
+* **Abrir el PR:** `https://github.com/fajardojuan402-pixel/Taller_Deuda/compare/main...demo/quality-gate-fail`
+* *(Insertar aquí la captura del check en rojo / PR bloqueado.)*
+
+**2. Pull Request APROBADO — rama `feature/annual-discount-rule`**
+
+* **Cambio legítimo:** se añadió `DiscountPolicy.calculateWithLoyalty` (bono de fidelidad del 5% para facturación anual con 12+ meses de antigüedad), aplicando el **Open/Closed Principle** sin modificar la regla base, con **4 pruebas nuevas**.
+* **Resultado esperado:** los 4 gates pasan y GitHub Actions marca los checks en **verde**; el merge a `main` se permite.
+* **Verificación local reproducible:** `npm run lint` → 0 problemas; `node scripts/check_coverage.js` → **48 tests, cobertura 99.02%, [QUALITY GATE] APROBADO**.
+* **Abrir el PR:** `https://github.com/fajardojuan402-pixel/Taller_Deuda/compare/main...feature/annual-discount-rule`
+* *(Insertar aquí la captura de los checks en verde / PR aprobado.)*
+
+> **Para que el bloqueo sea efectivo (recomendado):** en GitHub, ir a *Settings → Branches → Add branch protection rule*, patrón `main`, y activar *"Require status checks to pass before merging"* seleccionando el check **"Quality Gate - FastPay Billing Service"**. Así el PR rojo no podrá fusionarse hasta corregir el fallo.
+
+> Evidencia local reproducible del estado sano de `main` (misma lógica que corre en CI):
 > * `npm run lint` → 0 problemas.
 > * `npm audit --audit-level=high` → `found 0 vulnerabilities`.
 > * `node scripts/check_coverage.js` → `[QUALITY GATE] APROBADO`, cobertura 98.97% líneas.
