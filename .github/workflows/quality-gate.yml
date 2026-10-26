@@ -11,7 +11,7 @@ on:
 
 defaults:
   run:
-    working-directory: taller-casa/fastpay-service
+    working-directory: fastpay-service
 
 jobs:
   quality-gate:
@@ -28,7 +28,7 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm install
 
       # ---- GATE 1: Analisis estatico (ESLint) ----
       - name: Gate 1 - Lint (ESLint)
