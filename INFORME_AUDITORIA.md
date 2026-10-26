@@ -199,7 +199,9 @@ Se prepararon **dos ramas** en el repositorio para demostrar el comportamiento d
   ✖ 4 problems (4 errors, 0 warnings)
   ```
 * **Abrir el PR:** `https://github.com/fajardojuan402-pixel/Taller_Deuda/compare/main...demo/quality-gate-fail`
-* *(Insertar aquí la captura del check en rojo / PR bloqueado.)*
+* **Evidencia (PR bloqueado):** el check *Quality Gate* aparece en rojo con el mensaje *"All checks have failed"*, impidiendo el merge.
+
+![PR bloqueado: All checks have failed](./Imagenes/PullFiled.png)
 
 **2. Pull Request APROBADO — rama `feature/annual-discount-rule`**
 
@@ -207,7 +209,9 @@ Se prepararon **dos ramas** en el repositorio para demostrar el comportamiento d
 * **Resultado esperado:** los 4 gates pasan y GitHub Actions marca los checks en **verde**; el merge a `main` se permite.
 * **Verificación local reproducible:** `npm run lint` → 0 problemas; `node scripts/check_coverage.js` → **48 tests, cobertura 99.02%, [QUALITY GATE] APROBADO**.
 * **Abrir el PR:** `https://github.com/fajardojuan402-pixel/Taller_Deuda/compare/main...feature/annual-discount-rule`
-* *(Insertar aquí la captura de los checks en verde / PR aprobado.)*
+* **Evidencia (PR aprobado):** el check *Quality Gate* aparece en verde con el mensaje *"All checks have passed"*, habilitando el merge.
+
+![PR aprobado: All checks have passed](./Imagenes/PullSucces.png)
 
 > **Para que el bloqueo sea efectivo (recomendado):** en GitHub, ir a *Settings → Branches → Add branch protection rule*, patrón `main`, y activar *"Require status checks to pass before merging"* seleccionando el check **"Quality Gate - FastPay Billing Service"**. Así el PR rojo no podrá fusionarse hasta corregir el fallo.
 
