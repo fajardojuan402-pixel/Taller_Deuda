@@ -71,6 +71,28 @@ npm run simulate
 | Vulnerabilidades altas | 0 | 0 |
 | TDR | 13.3% | ~0% |
 
+## Evidencia de los Quality Gates (Fase 5)
+
+El repositorio incluye dos ramas de demostración para evidenciar que el pipeline
+de GitHub Actions bloquea o aprueba un Pull Request según cumpla los estándares:
+
+| Rama | Propósito | Resultado esperado |
+| :--- | :--- | :--- |
+| `demo/quality-gate-fail` | Introduce una función con complejidad 12 y anidamiento 6 (viola ESLint) | **PR bloqueado** (check en rojo) |
+| `feature/annual-discount-rule` | Nueva regla de descuento con pruebas (OCP) | **PR aprobado** (checks en verde) |
+
+Para generar las capturas de evidencia:
+
+1. Abre el PR bloqueado:
+   `https://github.com/fajardojuan402-pixel/Taller_Deuda/compare/main...demo/quality-gate-fail`
+   → espera a que GitHub Actions corra y muestre el check en **rojo**.
+2. Abre el PR aprobado:
+   `https://github.com/fajardojuan402-pixel/Taller_Deuda/compare/main...feature/annual-discount-rule`
+   → los checks saldrán en **verde** y el merge quedará habilitado.
+
+Recomendado: en *Settings → Branches* crea una *branch protection rule* para `main`
+que exija pasar el check **"Quality Gate - FastPay Billing Service"** antes de fusionar.
+
 ## Variables de entorno
 
 Copia `fastpay-service/.env.example` a `fastpay-service/.env` y ajusta los valores.
