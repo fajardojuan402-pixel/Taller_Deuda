@@ -1,0 +1,24 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (secretos reales nunca se versionan)
+.env
+.env.local
+
+# Artefactos de prueba / cobertura
+coverage/
+*.tmp
+.*.tmp
+
+# Respaldos temporales del simulador
+**/data/subscriptions_backup.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

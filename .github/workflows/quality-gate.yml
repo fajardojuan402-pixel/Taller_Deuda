@@ -1,0 +1,43 @@
+name: Quality Gate - FastPay Billing Service
+
+# El pipeline corre en cada push y pull_request hacia main.
+# Bloquea el merge si falla el linter, la auditoria de seguridad,
+# las pruebas o si la cobertura cae por debajo del umbral (80%).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: taller-casa/fastpay-service
+
+jobs:
+  quality-gate:
+    name: Static analysis, security, tests & coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      # ---- GATE 1: Analisis estatico (ESLint) ----
+      - name: Gate 1 - Lint (ESLint)
+        run: npm run lint
+
+      # ---- GATE 2: Auditoria de seguridad de dependencias ----
+      - name: Gate 2 - Security audit
+        run: npm audit --audit-level=high
+
+      # ---- GATE 3 + GATE 4: Pruebas con cobertura y umbral >= 80% ----
+      - name: Gate 3 & 4 - Tests + coverage threshold
+        run: node scripts/check_coverage.js
