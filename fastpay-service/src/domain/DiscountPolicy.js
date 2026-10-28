@@ -35,6 +35,29 @@ class DiscountPolicy {
 
     return Money.zero(currency);
   }
+
+  /**
+   * NUEVA REGLA (demo PR aprobado): bono de fidelidad para ciclo ANUAL.
+   * Suma un 5% adicional sobre el descuento base cuando el cliente lleva
+   * 12 o más meses de antigüedad y factura de forma anual. Extiende el
+   * cálculo sin modificar la regla base (OCP - ISO/IEC 25010: Modificabilidad).
+   *
+   * @param {Money} baseAmount
+   * @param {{plan: string, billingCycle: string}} subscription
+   * @param {{promoCode?: string, loyaltyMonths?: number}} options
+   * @returns {Money} descuento total (base + bono de fidelidad si aplica)
+   */
+  static calculateWithLoyalty(baseAmount, subscription, options = {}) {
+    const baseDiscount = DiscountPolicy.calculate(baseAmount, subscription, options);
+    const qualifies =
+      subscription.billingCycle === 'ANNUAL' && (options.loyaltyMonths || 0) >= 12;
+
+    if (!qualifies) {
+      return baseDiscount;
+    }
+    const loyaltyBonus = baseAmount.multiply(0.05);
+    return baseDiscount.add(loyaltyBonus);
+  }
 }
 
 module.exports = DiscountPolicy;
