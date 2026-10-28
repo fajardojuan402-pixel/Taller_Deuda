@@ -2,9 +2,9 @@
 > **Cliente:** FastPay Global Inc.
 > **Equipo Consultor:** Consultores Senior de Arquitectura y Calidad de Software
 > **Fecha:** 26/10/2026
-> **Repositorio Auditado:** `[URL de tu repositorio GitHub]`
-> **Commit Hash Base:** `[SHA del commit inicial con el código legacy]`
-> **Commit Hash Remediado:** `[SHA del commit final con Quality Gates]`
+> **Repositorio Auditado:** https://github.com/fajardojuan402-pixel/Taller_Deuda
+> **Commit Hash Base (código legacy de referencia):** `e272c43` (repositorio origen `NREYD/deuda_tecnica`) · `88e2d88` (commit inicial de este repositorio)
+> **Commit Hash Remediado:** `2d63198` (suite completa con Quality Gates y pruebas de integración)
 
 ---
 
@@ -14,15 +14,15 @@
 
 El microservicio `fastpay-billing-service` llegó a auditoría en estado crítico. Durante el último trimestre acumuló **17 horas de indisponibilidad**, **$49,470 USD en pérdidas directas** (reembolsos y penalizaciones) y **161 horas de ingeniería** consumidas en "apagar incendios". La causa raíz no es una falla puntual, sino **deuda técnica estructural**: un *God Method* (`processSubscriptionBilling`) con complejidad ciclomática de 22 que mezcla reglas de negocio, persistencia síncrona, impuestos y llamadas a pasarela; cálculos monetarios con coma flotante (IEEE 754); condiciones de carrera sobre un archivo JSON sin atomicidad que producían cobros múltiples; y secretos de API hardcodeados. La rotación del 60% del equipo es un síntoma directo de código *"imposible de entender, modificar o testear"* (violación transversal de **ISO/IEC 25010** en Mantenibilidad, Fiabilidad y Seguridad).
 
-La remediación aplicó el **Ciclo de Vida de Gestión de Deuda Técnica (ISO/IEC/IEEE 12207)**: diagnóstico forense, cuantificación financiera, gobernanza, saneamiento con red de seguridad (Golden Master + Arquitectura Hexagonal) y blindaje con Quality Gates automatizados en CI/CD. El resultado es un servicio con dominio puro y desacoplado, cobro idempotente, aritmética monetaria exacta y una suite de 44 pruebas con **98.97% de cobertura**.
+La remediación aplicó el **Ciclo de Vida de Gestión de Deuda Técnica (ISO/IEC/IEEE 12207)**: diagnóstico forense, cuantificación financiera, gobernanza, saneamiento con red de seguridad (Golden Master + Arquitectura Hexagonal) y blindaje con Quality Gates automatizados en CI/CD. El resultado es un servicio con dominio puro y desacoplado, cobro idempotente, aritmética monetaria exacta y una suite de 50 pruebas (unitarias, de caracterización y de integración HTTP) con **97.74% de cobertura global**.
 
 ### 1.2 Métricas Consolidadas de Deuda Técnica
 
 | Métrica | Estado Inicial (Legacy) | Estado Final (Refactorizado) | Meta / Estándar |
 | :--- | :--- | :--- | :--- |
 | **Complejidad Ciclomática Máxima** | 22 | ≤ 8 | ≤ 8 |
-| **Cobertura de Pruebas (Coverage)** | ~0% (2 tests frágiles) | 98.97% líneas / 97.46% ramas | ≥ 80% |
-| **Nº de Pruebas Automatizadas** | 2 | 44 | — |
+| **Cobertura de Pruebas (Coverage)** | ~0% (2 tests frágiles) | 97.74% líneas / 94.17% ramas (dominio y aplicación ~99%) | ≥ 80% |
+| **Nº de Pruebas Automatizadas** | 2 | 50 | — |
 | **Vulnerabilidades Críticas / Altas (`npm audit`)** | 0 | 0 | 0 |
 | **Violaciones de Linter (ESLint)** | 1 error + 2 warnings | 0 | 0 |
 | **Cobros duplicados (5 peticiones concurrentes)** | 5 de 5 (quíntuple) | 1 de 5 (resto idempotente) | 1 |
@@ -137,6 +137,14 @@ Antes de tocar el código de negocio se "congeló" el comportamiento válido del
 
 > Nota: el legacy producía totales como `325.7881` por el bug de floats. El Golden Master fija el valor **correcto redondeado a centavos** (`325.79`), que es el comportamiento válido esperado tras la remediación de DT-05.
 
+**Composición de la suite (50 pruebas, cobertura global 97.74%):**
+
+* **Unitarias de dominio** (`money.test.js`, `domain-policies.test.js`, `loyalty-discount.test.js`): Value Object `Money`, políticas de impuestos y descuentos, `BillingCalculator` y entidad `Subscription`.
+* **Unitarias de aplicación** (`process-billing.test.js`): caso de uso de cobro, idempotencia, regresión de cobro duplicado y `KeyedMutex`.
+* **De caracterización / Golden Master** (`characterization.test.js`): congela las reglas de negocio válidas.
+* **De integración del repositorio** (`file-repository.test.js`): ejercita el adaptador de persistencia con escritura atómica sobre el sistema de archivos.
+* **De integración del adaptador HTTP** (`http-adapter.integration.test.js`): levanta el servidor Express real (`buildApp.js`) en un puerto efímero e invoca los endpoints `/health`, `/api/subscriptions`, `/bill` y `/batch-run` con el cliente HTTP nativo, validando el adaptador de entrada de extremo a extremo con dobles inyectados (repositorio en memoria y gateway mock).
+
 ### 5.2 Estructura Hexagonal Implementada
 
 ```text
@@ -218,14 +226,14 @@ Se prepararon **dos ramas** en el repositorio para demostrar el comportamiento d
 > Evidencia local reproducible del estado sano de `main` (misma lógica que corre en CI):
 > * `npm run lint` → 0 problemas.
 > * `npm audit --audit-level=high` → `found 0 vulnerabilities`.
-> * `node scripts/check_coverage.js` → `[QUALITY GATE] APROBADO`, cobertura 98.97% líneas.
+> * `node scripts/check_coverage.js` → `[QUALITY GATE] APROBADO`, 50 tests, cobertura 97.74% líneas.
 
 ---
 
 ## 7. Conclusiones y Gobernanza Continua (ISO/IEC/IEEE 12207)
 
 **1. ¿Cómo previene la Arquitectura Hexagonal + Value Objects la reaparición de la deuda inadvertida?**
-Al aislar el dominio detrás de puertos, los cambios de infraestructura (base de datos, pasarela) no pueden filtrarse hacia las reglas de negocio, lo que evita el acoplamiento que originó el *God Method*. El Value Object `Money` hace **imposible por construcción** volver a operar dinero con floats: cualquier intento de usar un decimal crudo rompe el tipo y lo detecta una prueba. La red de 44 tests con 98.97% de cobertura actúa como alarma temprana ante regresiones.
+Al aislar el dominio detrás de puertos, los cambios de infraestructura (base de datos, pasarela) no pueden filtrarse hacia las reglas de negocio, lo que evita el acoplamiento que originó el *God Method*. El Value Object `Money` hace **imposible por construcción** volver a operar dinero con floats: cualquier intento de usar un decimal crudo rompe el tipo y lo detecta una prueba. La red de 50 tests con 97.74% de cobertura actúa como alarma temprana ante regresiones.
 
 **2. Ante una fecha límite agresiva para una nueva pasarela, ¿cuál es el procedimiento para contraer deuda deliberada sin caer en negligencia?**
 Seguir el proceso formal usado en `TDR-DEC-01`: (a) documentar la decisión en el Technical Debt Register con justificación de negocio; (b) definir una **medida de mitigación** (aquí: mock tras un puerto, idempotencia, escritura atómica); (c) fijar un **Debt Ceiling** (fecha límite de pago); y (d) hacer visible el ítem en el backlog. La deuda deliberada es prudente cuando es **consciente, medida y con fecha de vencimiento**; es negligente cuando es silenciosa e indefinida.

@@ -41,7 +41,7 @@ npm install
 # Arrancar el servicio
 npm start
 
-# Ejecutar la suite de pruebas (44 tests)
+# Ejecutar la suite de pruebas (50 tests: unitarias, caracterizacion e integracion)
 npm test
 
 # Pruebas con cobertura
@@ -65,7 +65,7 @@ npm run simulate
 | Métrica | Legacy | Refactorizado |
 | :--- | :--- | :--- |
 | Complejidad ciclomática máx. | 22 | ≤ 8 |
-| Cobertura de pruebas | ~0% | 98.97% líneas |
+| Cobertura de pruebas | ~0% | 97.74% líneas (50 tests) |
 | Cobros duplicados (5 concurrentes) | 5 de 5 | 1 de 5 |
 | Secretos hardcodeados | 1 | 0 |
 | Vulnerabilidades altas | 0 | 0 |
